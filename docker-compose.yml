@@ -1,0 +1,66 @@
+#version: "3"
+#services:
+#  springboot-app:
+#    container_name: spring-app
+#    image: springbooot-app
+#    restart: always
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - 8081:8080
+#    environment:
+#      MYSQL_HOST: mysqldb
+#      MYSQL_USER: root
+#      MYSQL_PASSWORD: root
+#      MYSQL_PORT: 3306
+#    depends_on:
+#      - mysqldb
+#    networks:
+#      - mynetwork
+#
+#  mysqldb:
+#    container_name: mysqldb
+#    image: mysql:8.4.0
+#    volumes:
+#      -  /home/user/Desktop/db:/var/lib/mysql
+#    ports:
+#      - 3307:3306
+#    environment:
+#      MYSQL_DATABASE: test
+#      MYSQL_ROOT_PASSWORD: root
+#    networks:
+#        - mynetwork
+#
+#networks:
+#  mynetwork:
+#    driver: bridge
+#    external: true
+#    name: mynetwork
+version: '3.8'
+services:
+  app:
+    image: spring_docker
+    container_name: springdocker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8080"
+    environment:
+      - MYSQL_URL=jdbc:mysql://db:3307/identity
+      - SPRING_DATASOURCE_USERNAME = admin
+      - SPRING_DATASOURCE_PASSWORD = root
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.4.0
+    container_name: mysqldocker
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=identity

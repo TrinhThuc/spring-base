@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="schema" value="base_spring"/>
+
+    <changeSet id="20250410-01" author="thuctv">
+
+        <createTable tableName="user" schemaName="${schema}">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="dob" type="DATE"/>
+            <column name="lotus_point" type="INT" defaultValueNumeric="0"/>
+        </createTable>
+
+        <createTable tableName="role" schemaName="${schema}">
+            <column name="name" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="refresh_token" schemaName="${schema}">
+            <column name="refresh_token" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="expiry_time" type="DATETIME"/>
+            <column name="user_id" type="VARCHAR(36)"/>
+        </createTable>
+
+        <createTable tableName="invalidated_token" schemaName="${schema}">
+            <column name="id" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="expiry_date" type="DATETIME"/>
+        </createTable>
+
+        <createTable tableName="user_roles" schemaName="${schema}">
+            <column name="user_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="roles_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="user_roles"
+                columnNames="user_id, roles_name"
+                constraintName="pk_user_roles"
+                schemaName="${schema}"/>
+
+        <createTable tableName="checkin_log" schemaName="${schema}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="checkin_datetime" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="point_awarded" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="month_key" type="VARCHAR(7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="point_log" schemaName="${schema}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="point_changed" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reason" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <!-- Các index được thêm ở đây -->
+
+        <createIndex tableName="user" indexName="idx_user_username" schemaName="${schema}">
+            <column name="username"/>
+        </createIndex>
+
+        <createIndex tableName="refresh_token" indexName="idx_refresh_token_user_id" schemaName="${schema}">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="user_roles" indexName="idx_user_roles_user_id" schemaName="${schema}">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="checkin_log" indexName="idx_checkin_user_date" schemaName="${schema}">
+            <column name="user_id"/>
+            <column name="checkin_datetime"/>
+        </createIndex>
+
+        <createIndex tableName="checkin_log" indexName="idx_checkin_user_month" schemaName="${schema}">
+            <column name="user_id"/>
+            <column name="month_key"/>
+        </createIndex>
+
+        <createIndex tableName="point_log" indexName="idx_point_log_user_id" schemaName="${schema}">
+            <column name="user_id"/>
+        </createIndex>
+
+    </changeSet>
+
+</databaseChangeLog>
