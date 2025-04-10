@@ -27,6 +27,7 @@ public enum ErrorCode {
     CHECKIN_LIMIT_REACHED(1013, "Checkin limit reached in month", HttpStatus.BAD_REQUEST),
     INVALID_POINT_VALUE(1015, "Invalid point value", HttpStatus.BAD_REQUEST),
     NOT_ENOUGH_POINT(1014, "Not enough point", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST(1006, "Invalid request", HttpStatus.BAD_REQUEST),
     SYSTEM_ERROR(2000, "System error", HttpStatus.INTERNAL_SERVER_ERROR),
     TOO_MANY_REQUEST(2001, "Too many request", HttpStatus.INTERNAL_SERVER_ERROR)
     ;

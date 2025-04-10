@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,6 +54,9 @@ public class UserService {
 
     //  @PreAuthorize("hasRole('ADMIN')")
     public UserResponse createUser(UserRequest request) {
+        if(StringUtils.isEmpty(request.getUsername()) || StringUtils.isEmpty(request.getPassword())){
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
         Optional<User> userExist = userRepository.findByUsername(request.getUsername());
         if (userExist.isPresent()) {
             throw new AppException(ErrorCode.USER_EXISTED);

@@ -32,6 +32,9 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
 
+redis:
+  address: redis://162.248.102.236:6379
+
 logging:
   level:
     org.springframework.cache: DEBUG
