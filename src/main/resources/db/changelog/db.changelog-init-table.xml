@@ -109,7 +109,6 @@
 
         <createIndex tableName="checkin_log" indexName="idx_checkin_user_date" schemaName="${schema}">
             <column name="user_id"/>
-            <column name="checkin_datetime"/>
         </createIndex>
 
         <createIndex tableName="checkin_log" indexName="idx_checkin_user_month" schemaName="${schema}">
