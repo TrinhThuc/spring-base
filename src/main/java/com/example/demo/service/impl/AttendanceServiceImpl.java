@@ -134,7 +134,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             user.setLotusPoint(user.getLotusPoint() + point);
             userRepository.save(user);
 
-            CheckinLogResponse response = new CheckinLogResponse();
+            CheckinLogResponse response = modelMapper.map(log, CheckinLogResponse.class);
             response.setTotalCheckins(checkinList.size());
 
             redisService.setValue(RedisUtil.getUserKey(user.getUsername()), user, RedisTTL.USER_INFO_TTL, TimeUnit.HOURS);
