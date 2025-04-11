@@ -15,6 +15,7 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.repository.InvalidatedTokenRepository;
 import com.example.demo.repository.RefreshTokenRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.util.RedisUtil;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -72,7 +73,7 @@ public class AuthService {
         }
         String token = generateToken(user);
         String refreshToken = refreshTokenService.createToken(user).getRefreshToken();
-        redisService.setValue(Constants.USER_INFO + user.getUsername(), user, RedisTTL.USER_INFO_TTL, TimeUnit.HOURS);
+        redisService.setValue(RedisUtil.getUserKey(user.getUsername()), user, RedisTTL.USER_INFO_TTL, TimeUnit.HOURS);
         return  AuthResponse.builder()
             .token(token)
             .refreshToken(refreshToken)

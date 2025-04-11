@@ -14,6 +14,5 @@ public class CheckinStatusResponse {
     private LocalDate date;
     private boolean checkedIn;
     private LocalDateTime checkinTime;
-    private Integer pointAwarded;
 }
 

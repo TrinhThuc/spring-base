@@ -46,7 +46,7 @@ jwt:
 
 checkin:
   allowed-time-ranges:
-    - "09:00-11:00"
+    - "07:00-11:00"
     - "19:00-21:00"
   point-awards:
     1: 1

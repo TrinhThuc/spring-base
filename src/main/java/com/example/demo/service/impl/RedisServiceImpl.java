@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.service.RedisService;
 import com.example.demo.util.DataUtil;
+import com.example.demo.util.GsonUtil;
 import com.google.gson.*;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -32,20 +33,7 @@ public class RedisServiceImpl implements RedisService {
     private ValueOperations<String, String> valueOps;
     private static final long EXPIRE = 30;
 
-    private final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class,
-                    (JsonSerializer<LocalDate>) (src, typeOfSrc, context) ->
-                            new JsonPrimitive(src.toString()))
-            .registerTypeAdapter(LocalDate.class,
-                    (JsonDeserializer<LocalDate>) (json, typeOfT, context) ->
-                            LocalDate.parse(json.getAsString()))
-            // LocalDateTime
-            .registerTypeAdapter(LocalDateTime.class,
-                    (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) ->
-                            new JsonPrimitive(src.toString()))
-            .registerTypeAdapter(LocalDateTime.class,
-                    (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) ->
-                            LocalDateTime.parse(json.getAsString()))
-            .create();
+    private final Gson gson = GsonUtil.getGson();
 
     @PostConstruct
     private void init() {

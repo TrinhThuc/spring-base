@@ -6,12 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CheckinLogRepository extends JpaRepository<CheckinLog, String> {
-    boolean existsByUserIdAndCheckinDatetimeBetween(String userId, LocalDateTime start, LocalDateTime end);
-    int countByUserIdAndMonthKey(String userId, String monthKey);
+    Optional<CheckinLog> findByUserIdAndMonthKey(String userId, String monthKey);
 
-    List<CheckinLog> findByUserIdAndCheckinDatetimeBetween(String userId, LocalDateTime from, LocalDateTime to);
 
 }

@@ -69,16 +69,14 @@
             <column name="user_id" type="VARCHAR(64)">
                 <constraints nullable="false"/>
             </column>
-            <column name="checkin_datetime" type="DATETIME">
-                <constraints nullable="false"/>
-            </column>
-            <column name="point_awarded" type="INT">
+            <column name="checkins" type="TEXT">
                 <constraints nullable="false"/>
             </column>
             <column name="month_key" type="VARCHAR(7)">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
         </createTable>
 
         <createTable tableName="point_log" schemaName="${schema}">

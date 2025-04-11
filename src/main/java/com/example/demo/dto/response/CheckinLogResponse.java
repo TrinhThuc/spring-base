@@ -19,4 +19,5 @@ public class CheckinLogResponse {
     Integer totalCheckins;
     String monthKey; // format: yyyy-MM (e.g. 2025-04)
     LocalDateTime createdAt;
+    String checkins;
 }

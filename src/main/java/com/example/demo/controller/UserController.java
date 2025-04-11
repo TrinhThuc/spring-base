@@ -75,7 +75,7 @@ public class UserController {
     }
 
     @PostMapping("/deduct-point")
-    public ApiResponse<UserResponse> deductPoint(@RequestBody DeductPointRequest request) {
+    public ApiResponse<UserResponse> deductPoint(@RequestBody DeductPointRequest request) throws InterruptedException {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.deductPoint(request))
                 .build();

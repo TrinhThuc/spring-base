@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -32,10 +33,10 @@ public class AttendanceController {
     }
 
     @GetMapping("/checkin/status")
-    public ResponseEntity<List<CheckinStatusResponse>> getCheckinStatuses(
-            @RequestParam int year,
-            @RequestParam int month
-    ) {
+    public ResponseEntity<List<CheckinStatusResponse>> getCheckinStatuses() {
+        LocalDate today = LocalDate.now();
+        int month = today.getMonthValue();
+        int year = today.getYear();
         List<CheckinStatusResponse> statuses = attendanceService.getCheckinStatuses(year, month);
         return ResponseEntity.ok(statuses);
     }

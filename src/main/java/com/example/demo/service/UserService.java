@@ -13,11 +13,13 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.repository.PointLogRepository;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.util.RedisUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -54,7 +57,7 @@ public class UserService {
 
     //  @PreAuthorize("hasRole('ADMIN')")
     public UserResponse createUser(UserRequest request) {
-        if(StringUtils.isEmpty(request.getUsername()) || StringUtils.isEmpty(request.getPassword())){
+        if (StringUtils.isEmpty(request.getUsername()) || StringUtils.isEmpty(request.getPassword())) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
         Optional<User> userExist = userRepository.findByUsername(request.getUsername());
@@ -108,14 +111,14 @@ public class UserService {
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();
-        User cachedUser = redisService.getValue(Constants.USER_INFO + name, User.class);
+        User cachedUser = redisService.getValue(RedisUtil.getUserKey(name), User.class);
         if (cachedUser != null) {
             log.info("Hit cache ✅");
             return modelMapper.map(cachedUser, UserResponse.class);
         }
         User user = userRepository.findByUsername(name).orElseThrow(
                 () -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        redisService.setValue(Constants.USER_INFO + user.getUsername(), user, RedisTTL.USER_INFO_TTL, TimeUnit.HOURS);
+        redisService.setValue(RedisUtil.getUserKey(user.getUsername()), user, RedisTTL.USER_INFO_TTL, TimeUnit.HOURS);
         return modelMapper.map(user, UserResponse.class);
     }
 
@@ -129,16 +132,13 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public UserResponse deductPoint(DeductPointRequest deductPointRequest) {
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();
 
-        User user = redisService.getValue(Constants.USER_INFO + name, User.class);
-        if (user == null) {
-            user = userRepository.findByUsername(name)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        }
+        User user = userRepository.findByUsername(name)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         int point = deductPointRequest.getPoint();
         if (point <= 0) {
@@ -148,21 +148,34 @@ public class UserService {
         if (user.getLotusPoint() < point) {
             throw new AppException(ErrorCode.NOT_ENOUGH_POINT);
         }
+        String todayKey = RedisUtil.getCheckInKey(user.getId());
+        RLock lock = redissonClient.getLock(Constants.LOCK + todayKey);
+        boolean isLocked = false;
+        try {
+            isLocked = lock.tryLock(5, 10, TimeUnit.SECONDS);
+            if (!isLocked) throw new AppException(ErrorCode.TOO_MANY_REQUEST);
+            user.setLotusPoint(user.getLotusPoint() - point);
+            user = userRepository.save(user);
 
-        user.setLotusPoint(user.getLotusPoint() - point);
-        user = userRepository.save(user);
+            PointLog pointLog = PointLog.builder()
+                    .userId(user.getId())
+                    .pointChanged(-point)
+                    .reason(deductPointRequest.getReason() != null ? deductPointRequest.getReason() : "Trừ điểm")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            pointLogRepository.save(pointLog);
 
-        PointLog pointLog = PointLog.builder()
-                .userId(user.getId())
-                .pointChanged(-point)
-                .reason(deductPointRequest.getReason() != null ? deductPointRequest.getReason() : "Trừ điểm")
-                .createdAt(LocalDateTime.now())
-                .build();
-        pointLogRepository.save(pointLog);
-
-        redisService.setValue(Constants.USER_INFO + user.getUsername(), user, RedisTTL.USER_INFO_TTL, TimeUnit.HOURS);
-        redisService.deleteKeysByPattern(Constants.POINT_LOG + user.getId() + ":*");
-        return modelMapper.map(user, UserResponse.class);
+            redisService.setValue(RedisUtil.getUserKey(user.getUsername()), user, RedisTTL.USER_INFO_TTL, TimeUnit.HOURS);
+            redisService.deleteKeysByPattern(RedisUtil.getPointLogKey(user.getId()) + ":*");
+            return modelMapper.map(user, UserResponse.class);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AppException(ErrorCode.SYSTEM_ERROR);
+        } finally {
+            if (isLocked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 
 }
